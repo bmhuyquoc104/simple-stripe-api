@@ -8,6 +8,7 @@ if (process.env.NODE_ENV !== "production") {
 // Import libraries
 import express, { Response, Request } from "express";
 import cors from "cors";
+import Checkout from "./routes/Checkout";
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -19,8 +20,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET, {
   apiVersion: "2020-08-27",
 });
 
-const PORT = process.env.PORT || 8000;
-
+const PORT = process.env.PORT;
 app.get("/", (req: Request, res: Response) => {
   res.status(200).send("This is backend");
 });
@@ -31,3 +31,5 @@ app.listen(PORT, () => {
 
 import api from "./api";
 app.use("/api", api);
+
+app.use("/checkout", Checkout);

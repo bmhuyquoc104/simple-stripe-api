@@ -22,7 +22,7 @@ const stripe_1 = __importDefault(require("stripe"));
 exports.stripe = new stripe_1.default(process.env.STRIPE_SECRET, {
     apiVersion: "2020-08-27",
 });
-const PORT = 8080;
+const PORT = process.env.PORT;
 app.get("/", (req, res) => {
     res.status(200).send("This is backend");
 });
@@ -32,4 +32,4 @@ app.listen(PORT, () => {
 const api_1 = __importDefault(require("./api"));
 app.use("/api", api_1.default);
 app.use("/checkout", Checkout_1.default);
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=server.js.map
