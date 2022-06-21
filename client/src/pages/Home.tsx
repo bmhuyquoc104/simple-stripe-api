@@ -12,10 +12,11 @@ import {
 } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
+import { useStripe } from "@stripe/react-stripe-js";
 function Home() {
   const [products, setProducts] = useState<any>([]);
   const [cart, setCart] = useState<any>([]);
-
+  const stripe = useStripe();
   useEffect(() => {
     async function getData() {
       const response = await fetch(`https://fakestoreapi.com/products`);
@@ -23,6 +24,7 @@ function Home() {
       let actualData = await response.json();
       actualData.map((element: any) => {
         element.quantity = 0;
+        element.currency = "usd";
       });
       setProducts(actualData);
     }
@@ -43,14 +45,47 @@ function Home() {
     );
   };
 
-  const addCart = () => {
-    console.log("hello");
-    const product = products.filter((element: any) => element.quantity > 0);
-    if (cart.includes(product)) return
-    setCart(product);
-  };
+  async function fetchFromApi(opts: any) {
+    const { method, body }:any = { method: "POST", body: null, ...opts };
 
-  console.log(cart);
+    const res = await fetch("http://localhost:3333/checkout", {
+      method,
+      ...(body && { body: JSON.stringify(body) }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return res.json();
+  }
+
+  const addCart = async (e: any) => {
+    e.preventDefault();
+    const product = products.filter((element: any) => element.quantity > 0);
+    product.map((e: any) => {
+      e.amount = e.price * 100;
+      e.name = e.title;
+      delete e.image;
+      delete e.title;
+      delete e.price;
+      delete e.rating;
+      delete e.category;
+      delete e.id;
+    });
+    console.log(product);
+    // if (cart.includes(product)) return;
+    // setCart(product);
+    const body = { line_items: product };
+    console.log(cart);
+    const { id: sessionId } = await fetchFromApi({
+      body,
+    });
+    const { error }:any = await stripe?.redirectToCheckout({
+      sessionId,
+    });
+    if (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <Stack direction="row" spacing={2}>
@@ -103,7 +138,7 @@ function Home() {
         variant="contained"
         color="error"
         size="large"
-        onClick = {addCart}
+        onClick={addCart}
       >
         Check Out
       </Button>
